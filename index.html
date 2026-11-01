@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SOLARA HALO S1 | Sound with presence.</title>
+  <meta name="description" content="A portable spatial speaker tuned for wide projection and daily movement. 3D interactive showcase.">
+
+  <!-- Fontes de Alta Precisão (Inter / Geist / Space Grotesk) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       DESIGN TOKENS - SOLARA HALO S1 (PREMIUM AUDIO AESTHETIC)
+       ========================================================================== */
+    :root {
+      --bg-dark: #0a0b0d;
+      --bg-surface: #121418;
+      --bg-card: rgba(22, 25, 31, 0.7);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(255, 255, 255, 0.2);
+      
+      --text-main: #f0f2f5;
+      --text-muted: #8b929e;
+      --text-dim: #555c68;
+      
+      --accent-purple: #8e5cff;
+      --accent-cream: #eadcc6;
+      --accent-copper: #b79a73;
+      --accent-active: #8e5cff;
+
+      --btn-bg: #eceae5;
+      --btn-text: #0e1013;
+
+      --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      --font-display: 'Space Grotesk', sans-serif;
+
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: 16px;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      overflow-x: hidden;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button {
+      background: none;
+      border: none;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    /* ==========================================================================
+       CANVAS 3D PERSISTENTE EM BACKGROUND (WEBGL THREE.JS)
+       ========================================================================== */
+    #webgl-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: auto; /* Permite arrastar o modelo 3D com o mouse/dedo */
+    }
+
+    #webgl-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Marca d'água monumental de fundo */
+    .hero-watermark {
+      position: fixed;
+      top: 50%;
+      left: 60%;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-display);
+      font-size: clamp(8rem, 25vw, 24rem);
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      color: rgba(255, 255, 255, 0.018);
+      pointer-events: none;
+      user-select: none;
+      z-index: 0;
+      white-space: nowrap;
+    }
+
+    /* ==========================================================================
+       FLOATING PILL NAVBAR
+       ========================================================================== */
+    .navbar-wrapper {
+      position: fixed;
+      top: calc(18px + var(--safe-top));
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      z-index: 100;
+      padding: 0 1.5rem;
+      pointer-events: none;
+    }
+
+    .navbar-pill {
+      background: rgba(18, 20, 24, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      padding: 0.5rem 0.6rem 0.5rem 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      pointer-events: auto;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+    }
+    .nav-brand .divider {
+      color: var(--text-dim);
+      font-weight: 400;
+    }
+    .nav-brand .model {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+    .nav-links a {
+      transition: color 0.2s;
+    }
+    .nav-links a:hover {
+      color: var(--text-main);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-nav-cta {
+      background-color: var(--btn-bg);
+      color: var(--btn-text);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.55rem 1.15rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: transform 0.2s, background-color 0.2s;
+    }
+    .btn-nav-cta:hover {
+      transform: scale(1.02);
+      background-color: #fff;
+    }
+
+    .btn-cart {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-main);
+      transition: all 0.2s;
+    }
+    .btn-cart:hover {
+      border-color: var(--border-focus);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* ==========================================================================
+       SCROLLYTELLING CONTENT LAYOUT
+       ========================================================================== */
+    main {
+      position: relative;
+      z-index: 10;
+      pointer-events: none; /* Deixa cliques e toques passarem para o 3D quando fora de textos/botões */
+    }
+
+    .content-section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: calc(100px + var(--safe-top)) 6vw calc(60px + var(--safe-bottom)) 6vw;
+      position: relative;
+    }
+
+    .content-box {
+      max-width: 520px;
+      pointer-events: auto; /* Reativa cliques nos textos e botões */
+    }
+
+    .eyebrow-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--accent-purple);
+      text-transform: uppercase;
+      margin-bottom: 1.25rem;
+    }
+    .eyebrow-tag .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--accent-purple);
+      box-shadow: 0 0 10px var(--accent-purple);
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.8rem, 5.5vw, 4.8rem);
+      line-height: 0.95;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+      color: var(--text-main);
+      text-transform: uppercase;
+    }
+
+    .section-desc {
+      font-size: 1.05rem;
+      line-height: 1.65;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+
+    .specs-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--text-dim);
+    }
+    .specs-badge-row span.active {
+      color: var(--text-main);
+    }
+
+    .cta-row {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background-color: var(--btn-bg);
+      color: var(--btn-text);
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 0.9rem 1.8rem;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .btn-primary:hover {
+      background-color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-secondary {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: color 0.2s;
+    }
+    .btn-secondary:hover {
+      color: var(--text-main);
+    }
+
+    .price-meta {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+    }
+    .price-meta strong {
+      color: var(--text-main);
+      font-size: 1.15rem;
+    }
+
+    /* Dobra 2 (Form): Texto centralizado/à esquerda */
+    #section-form {
+      justify-content: flex-start;
+    }
+
+    /* Dobra 3 (Control): Texto alinhado à direita */
+    #section-control {
+      justify-content: flex-end;
+    }
+
+    /* Dobra 4: Personalizador de Cores (Finishes) */
+    #section-finishes {
+      justify-content: flex-start;
+      min-height: 120vh;
+    }
+
+    .finishes-picker {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 1.75rem;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      margin-top: 1.5rem;
+    }
+
+    .swatches-grid {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .swatch-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      padding: 3px;
+      transition: transform 0.2s, border-color 0.2s;
+      position: relative;
+    }
+    .swatch-btn.active {
+      border-color: #fff;
+      transform: scale(1.08);
+    }
+    .swatch-circle {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.2), 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .finish-details h4 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+    .finish-details p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Dobra 5: Especificações Técnicas */
+    .specs-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      pointer-events: auto;
+    }
+
+    .spec-card {
+      background: rgba(18, 20, 24, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      backdrop-filter: blur(12px);
+    }
+    .spec-card h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--text-main);
+    }
+    .spec-card p {
+      font-size: 0.92rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    /* ==========================================================================
+       FLOATING PURCHASE DOCK (BASE FLUTUANTE)
+       ========================================================================== */
+    .purchase-dock-wrapper {
+      position: fixed;
+      bottom: calc(24px + var(--safe-bottom));
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      z-index: 100;
+      padding: 0 1.5rem;
+      pointer-events: none;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s;
+    }
+
+    .purchase-dock {
+      background: rgba(14, 16, 20, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      padding: 0.65rem 0.75rem 0.65rem 1.75rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      pointer-events: auto;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .dock-meta {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .dock-swatch-mini {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .dock-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .dock-info .title {
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+    .dock-info .finish {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .dock-price {
+      display: flex;
+      align-items: baseline;
+      gap: 0.4rem;
+      font-size: 1.15rem;
+      font-weight: 800;
+    }
+    .dock-price span {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      font-weight: 500;
+    }
+
+    .btn-add-bag {
+      background-color: var(--btn-bg);
+      color: var(--btn-text);
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.75rem 1.6rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .btn-add-bag:hover {
+      background-color: #fff;
+      transform: scale(1.02);
+    }
+    .btn-add-bag.added {
+      background-color: #10b981;
+      color: #fff;
+    }
+
+    /* Toast de Carrinho */
+    .cart-toast {
+      position: fixed;
+      top: calc(90px + var(--safe-top));
+      right: 2rem;
+      background: #121418;
+      border: 1px solid #10b981;
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      transform: translateY(-20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
+    }
+    .cart-toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* 3D Hint de Rotação */
+    .interaction-hint {
+      position: fixed;
+      bottom: calc(24px + var(--safe-bottom));
+      right: 2rem;
+      background: rgba(18, 20, 24, 0.8);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      pointer-events: none;
+      z-index: 90;
+      backdrop-filter: blur(8px);
+    }
+    .interaction-hint .icon-rotate {
+      width: 14px;
+      height: 14px;
+      stroke: var(--text-muted);
+    }
+
+    /* ==========================================================================
+       RESPONSIVIDADE MOBILE IMPECÁVEL
+       ========================================================================== */
+    @media (max-width: 900px) {
+      .nav-links {
+        display: none;
+      }
+      .specs-grid {
+        grid-template-columns: 1fr;
+        padding: 0 1rem;
+      }
+      .purchase-dock {
+        gap: 1.25rem;
+        padding: 0.6rem 0.6rem 0.6rem 1.25rem;
+      }
+      .interaction-hint {
+        display: none;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .navbar-pill {
+        width: 100%;
+        justify-content: space-between;
+        padding: 0.5rem 0.6rem 0.5rem 1rem;
+      }
+      .content-section {
+        padding: calc(90px + var(--safe-top)) 5vw 40px 5vw;
+        justify-content: flex-start !important;
+      }
+      .content-box {
+        max-width: 100%;
+      }
+      .section-title {
+        font-size: clamp(2.2rem, 9vw, 3.4rem);
+      }
+      .section-desc {
+        font-size: 0.95rem;
+      }
+      .purchase-dock-wrapper {
+        bottom: calc(16px + var(--safe-bottom));
+        padding: 0 1rem;
+      }
+      .purchase-dock {
+        width: 100%;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+      .dock-price {
+        font-size: 1rem;
+      }
+      .btn-add-bag {
+        padding: 0.65rem 1.25rem;
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+
+  <!-- Three.js e GLTFLoader CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/meshoptimizer@0.18.1/meshopt_decoder.js"></script>
+</head>
+<body>
+
+  <!-- MARCA D'ÁGUA MONUMENTAL -->
+  <div class="hero-watermark">SOLARA</div>
+
+  <!-- CONTAINER DO THREE.JS WEBGL -->
+  <div id="webgl-container">
+    <canvas id="webgl-canvas"></canvas>
+  </div>
+
+  <!-- FLOATING PILL NAVBAR -->
+  <header class="navbar-wrapper">
+    <nav class="navbar-pill">
+      <div class="nav-brand">
+        <span>SOLARA</span>
+        <span class="divider">/</span>
+        <span class="model">HALO S1</span>
+      </div>
+
+      <div class="nav-links">
+        <a href="#section-hero">The idea</a>
+        <a href="#section-form">Design</a>
+        <a href="#section-finishes">Finishes</a>
+        <a href="#section-specs">Specifications</a>
+      </div>
+
+      <div class="nav-actions">
+        <a href="#section-finishes" class="btn-nav-cta">
+          <span>Choose your finish</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+        </a>
+        <button class="btn-cart" id="btnCartIcon" aria-label="Shopping Bag">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- HINT DE INTERAÇÃO 3D -->
+  <div class="interaction-hint">
+    <svg class="icon-rotate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 11-.57-8.38l5.67-5.67"/></svg>
+    <span>DRAG TO ROTATE 3D</span>
+  </div>
+
+  <!-- TOAST DE ADIÇÃO AO CARRINHO -->
+  <div class="cart-toast" id="cartToast">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="toastText">Added HALO S1 (Graphite Mesh) to bag</span>
+  </div>
+
+  <!-- CONTEÚDO SCROLLYTELLING -->
+  <main>
+    <!-- DOBRA 1: HERO -->
+    <section class="content-section" id="section-hero">
+      <div class="content-box">
+        <div class="eyebrow-tag">
+          <div class="dot"></div>
+          <span>PORTABLE SPATIAL SPEAKER</span>
+        </div>
+
+        <h1 class="section-title">
+          SOUND THAT HOLDS THE ROOM.
+        </h1>
+
+        <p class="section-desc">
+          A portable spatial speaker tuned for wide acoustic projection and effortless daily movement. Engineered with continuous woven mesh and precision alloy controls.
+        </p>
+
+        <div class="specs-badge-row">
+          <span class="active">360° FIELD TARGET</span>
+          <span>·</span>
+          <span class="active">CARRY FORM</span>
+          <span>·</span>
+          <span>24H BATTERY</span>
+        </div>
+
+        <div class="cta-row">
+          <a href="#section-finishes" class="btn-primary">
+            <span>Choose your finish</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+          </a>
+          <a href="#section-form" class="btn-secondary">
+            <span>Explore acoustics</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 13l5 5 5-5M12 4v14"/></svg>
+          </a>
+        </div>
+
+        <div class="price-meta">
+          <strong>$429 USD</strong> · Launch price · Lab preview
+        </div>
+      </div>
+    </section>
+
+    <!-- DOBRA 2: FORM -->
+    <section class="content-section" id="section-form">
+      <div class="content-box">
+        <div class="eyebrow-tag">
+          <div class="dot" style="background:#eadcc6; box-shadow:0 0 10px #eadcc6;"></div>
+          <span style="color:#eadcc6;">FORM & ACOUSTICS</span>
+        </div>
+
+        <h2 class="section-title">
+          WRAPPED AROUND AIR.
+        </h2>
+
+        <p class="section-desc">
+          A continuous seamless acoustic shell lets the cabinet project outward without reading like an ordinary box. Internal baffles isolate low-end resonance while the curved mesh allows clean sound dispersion to every corner of your space.
+        </p>
+
+        <div class="specs-badge-row">
+          <span class="active">DUAL RADIATORS</span>
+          <span>·</span>
+          <span class="active">TITANIUM TWEETER</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- DOBRA 3: CONTROL -->
+    <section class="content-section" id="section-control">
+      <div class="content-box">
+        <div class="eyebrow-tag">
+          <div class="dot" style="background:#b79a73; box-shadow:0 0 10px #b79a73;"></div>
+          <span style="color:#b79a73;">TACTILE INTERACTION</span>
+        </div>
+
+        <h2 class="section-title">
+          TACTILE BY DESIGN.
+        </h2>
+
+        <p class="section-desc">
+          A raised organic alloy crown gives volume, playback, and device pairing a reassuring physical anchor. No finicky touch bars or accidental swipes — just pure mechanical precision engineered for your fingertips.
+        </p>
+
+        <div class="specs-badge-row">
+          <span class="active">ROTARY ENCODER</span>
+          <span>·</span>
+          <span class="active">HAPTIC SNAP</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- DOBRA 4: THREE FINISHES (CUSTOMIZER INTERATIVO) -->
+    <section class="content-section" id="section-finishes">
+      <div class="content-box">
+        <div class="eyebrow-tag">
+          <div class="dot"></div>
+          <span>MAKE IT YOURS</span>
+        </div>
+
+        <h2 class="section-title">
+          THREE FINISHES. ONE ACOUSTIC BODY.
+        </h2>
+
+        <p class="section-desc">
+          Change the finish without compromising the acoustic silhouette. Select an edition to transform the 3D model in real time.
+        </p>
+
+        <div class="finishes-picker">
+          <div class="swatches-grid">
+            <button class="swatch-btn active" data-finish="graphite" aria-label="Graphite Mesh">
+              <div class="swatch-circle" style="background: #151a20;"></div>
+            </button>
+            <button class="swatch-btn" data-finish="mist" aria-label="Mist Alloy">
+              <div class="swatch-circle" style="background: #eadcc6;"></div>
+            </button>
+            <button class="swatch-btn" data-finish="copper" aria-label="Copper Signal">
+              <div class="swatch-circle" style="background: #b79a73;"></div>
+            </button>
+          </div>
+
+          <div class="finish-details">
+            <h4 id="finishTitle">Graphite Mesh</h4>
+            <p id="finishDesc">Dark woven acoustic grille, obsidian chassis, and matte graphite silicone dampener base.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DOBRA 5: SPECIFICATIONS -->
+    <section class="content-section" id="section-specs" style="min-height: 80vh; flex-direction: column; justify-content: center;">
+      <div class="specs-grid">
+        <div class="spec-card">
+          <h3>Acoustic Architecture</h3>
+          <p>Custom 45mm neodymium driver, dual passive force-canceling radiators, and 360-degree spatial dispersion waveguide.</p>
+        </div>
+        <div class="spec-card">
+          <h3>Battery & Power</h3>
+          <p>Up to 24 hours continuous playback at 70dB SPL. USB-C Power Delivery fast charging (80% charge in 45 minutes).</p>
+        </div>
+        <div class="spec-card">
+          <h3>Connectivity & Build</h3>
+          <p>Bluetooth 5.3 LE Audio with LC3 codec, multipoint pairing for 2 devices, and IPX5 splash-resistant continuous shell.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FLOATING PURCHASE DOCK -->
+  <div class="purchase-dock-wrapper" id="purchaseDock">
+    <div class="purchase-dock">
+      <div class="dock-meta">
+        <div class="dock-swatch-mini" id="dockSwatch" style="background: #151a20;"></div>
+        <div class="dock-info">
+          <span class="title">SOLARA HALO S1</span>
+          <span class="finish" id="dockFinishLabel">Graphite Mesh</span>
+        </div>
+      </div>
+
+      <div class="dock-price">
+        $429 <span>USD</span>
+      </div>
+
+      <button class="btn-add-bag" id="btnAddBag">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        <span id="btnBagText">Add to bag</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       THREE.JS SCROLLYTELLING & MATERIAL ENGINE
+       ========================================================================== -->
+  <script>
+    window.__appErrors = [];
+    window.onerror = function(msg, url, line, col, err) {
+      window.__appErrors.push({ msg, line, stack: err ? err.stack : null });
+    };
+    /* ==========================================================================
+       1. WEB AUDIO API SYNTH (MICROINTERAÇÕES SONORAS)
+       ========================================================================== */
+    class AudioHaptics {
+      constructor() {
+        this.ctx = null;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+      playSwitch() {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.05);
+      }
+      playSuccess() {
+        if (!this.ctx) return;
+        const notes = [523.25, 659.25, 783.99]; // Acorde Maior
+        notes.forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + i * 0.06);
+          gain.gain.setValueAtTime(0.1, this.ctx.currentTime + i * 0.06);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + i * 0.06 + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime + i * 0.06);
+          osc.stop(this.ctx.currentTime + i * 0.06 + 0.35);
+        });
+      }
+    }
+    const haptics = new AudioHaptics();
+
+    /* ==========================================================================
+       2. THREE.JS ENGINE SETUP
+       ========================================================================== */
+    const canvas = document.getElementById('webgl-canvas');
+    const container = document.getElementById('webgl-container');
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 0, 5.2);
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      alpha: true,
+      antialias: true,
+      powerPreference: 'high-performance'
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+
+    // ILUMINAÇÃO DE ESTÚDIO FOTOGRÁFICO
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
+
+    const keyLight = new THREE.DirectionalLight(0xfff5ea, 2.2);
+    keyLight.position.set(4, 5, 4);
+    scene.add(keyLight);
+
+    const fillLight = new THREE.DirectionalLight(0x8e5cff, 1.2);
+    fillLight.position.set(-4, -2, -3);
+    scene.add(fillLight);
+
+    const rimLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    rimLight.position.set(0, 4, -4);
+    scene.add(rimLight);
+
+    // GRUPO PRINCIPAL DO PRODUTO
+    const productGroup = new THREE.Group();
+    scene.add(productGroup);
+
+    let productMesh = null;
+    let productMaterial = null;
+
+    // DEFINIÇÃO DOS ACABAMENTOS (FINISHES)
+    const finishes = {
+      graphite: {
+        name: "Graphite Mesh",
+        desc: "Dark woven acoustic grille, obsidian chassis, and matte graphite silicone dampener base.",
+        color: 0x181d24,
+        roughness: 0.55,
+        metalness: 0.45,
+        lightColor: 0x8e5cff,
+        swatch: "#151a20"
+      },
+      mist: {
+        name: "Mist Alloy",
+        desc: "Warm beige acoustic mesh, soft champagne alloy crown, and a grounded neutral base.",
+        color: 0xd8ceb8,
+        roughness: 0.48,
+        metalness: 0.35,
+        lightColor: 0xfff0dd,
+        swatch: "#eadcc6"
+      },
+      copper: {
+        name: "Copper Signal",
+        desc: "Warm anodized alloy mesh, grounded graphite chassis, and brushed copper signal ring.",
+        color: 0x9e7b54,
+        roughness: 0.4,
+        metalness: 0.65,
+        lightColor: 0xffa550,
+        swatch: "#b79a73"
+      }
+    };
+    let currentFinishKey = 'graphite';
+
+    // CARREGADOR GLTF DO MODELO REAL COM WEBASSEMBLY MESHOPT DECODER
+    MeshoptDecoder.ready.then(() => {
+      const loader = new THREE.GLTFLoader();
+      loader.setMeshoptDecoder(MeshoptDecoder);
+      loader.load(
+        './assets/product.glb',
+        (gltf) => {
+          const root = gltf.scene;
+
+          // Centralizar geometria
+          const box = new THREE.Box3().setFromObject(root);
+          const center = box.getCenter(new THREE.Vector3());
+          const size = box.getSize(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const scale = 2.4 / maxDim;
+          root.scale.set(scale, scale, scale);
+          root.position.sub(center.multiplyScalar(scale));
+
+          // Encontrar mesh e clonar material para edição dinâmica
+          root.traverse((child) => {
+            if (child.isMesh) {
+              productMesh = child;
+              productMaterial = child.material.clone();
+              productMesh.material = productMaterial;
+              productMaterial.roughness = finishes.graphite.roughness;
+              productMaterial.metalness = finishes.graphite.metalness;
+            }
+          });
+
+          productGroup.add(root);
+        },
+        undefined,
+        (error) => {
+          console.error("Erro ao carregar product.glb:", error);
+        }
+      );
+    });
+
+    /* ==========================================================================
+       3. INTERAÇÃO DE ARRASTAR COM O MOUSE / TOUCH
+       ========================================================================== */
+    let isDragging = false;
+    let prevMouseX = 0, prevMouseY = 0;
+    let dragRotX = 0, dragRotY = 0;
+    let targetDragRotX = 0, targetDragRotY = 0;
+
+    window.addEventListener('mousedown', (e) => {
+      // Ignorar se clicou em botão ou link
+      if (e.target.closest('button, a, .finishes-picker')) return;
+      isDragging = true;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const deltaX = e.clientX - prevMouseX;
+      const deltaY = e.clientY - prevMouseY;
+      targetDragRotY += deltaX * 0.006;
+      targetDragRotX += deltaY * 0.006;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+    });
+
+    window.addEventListener('mouseup', () => { isDragging = false; });
+
+    // Touch
+    window.addEventListener('touchstart', (e) => {
+      if (e.target.closest('button, a, .finishes-picker')) return;
+      if (e.touches.length === 1) {
+        isDragging = true;
+        prevMouseX = e.touches[0].clientX;
+        prevMouseY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+      if (!isDragging || e.touches.length !== 1) return;
+      const deltaX = e.touches[0].clientX - prevMouseX;
+      const deltaY = e.touches[0].clientY - prevMouseY;
+      targetDragRotY += deltaX * 0.006;
+      targetDragRotX += deltaY * 0.006;
+      prevMouseX = e.touches[0].clientX;
+      prevMouseY = e.touches[0].clientY;
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => { isDragging = false; });
+
+    /* ==========================================================================
+       4. SCROLLYTELLING KINEMATICS (INTERPOLAÇÃO DE CÂMERA E MODELO)
+       ========================================================================== */
+    function getScrollProgress() {
+      const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
+      return totalScroll > 0 ? Math.min(1, Math.max(0, window.scrollY / totalScroll)) : 0;
+    }
+
+    // Variáveis de interpolação suave (lerp)
+    let currentX = 0.9, targetX = 0.9;
+    let currentY = -0.1, targetY = -0.1;
+    let currentRotX = 0.15, targetRotX = 0.15;
+    let currentRotY = -0.5, targetRotY = -0.5;
+    let currentRotZ = 0, targetRotZ = 0;
+    let currentScale = 1, targetScale = 1;
+
+    function updateScrollytelling() {
+      const p = getScrollProgress();
+      const isMobile = window.innerWidth <= 768;
+
+      if (p < 0.22) {
+        // DOBRA 1: HERO (Produto à direita em perspectiva)
+        targetX = isMobile ? 0 : 1.1;
+        targetY = isMobile ? -0.4 : -0.1;
+        targetRotX = 0.12;
+        targetRotY = -0.55;
+        targetRotZ = 0.02;
+        targetScale = isMobile ? 0.75 : 1.0;
+      } else if (p < 0.48) {
+        // DOBRA 2: FORM (Produto vira de lado para mostrar o tecido contínuo)
+        targetX = isMobile ? 0 : 0.95;
+        targetY = isMobile ? -0.4 : 0.05;
+        targetRotX = 0.05;
+        targetRotY = 1.25; // Perfil lateral curvado
+        targetRotZ = -0.05;
+        targetScale = isMobile ? 0.8 : 1.15;
+      } else if (p < 0.72) {
+        // DOBRA 3: CONTROL (Produto inclina para cima, exibindo o dial/crown superior)
+        targetX = isMobile ? 0 : -0.95;
+        targetY = isMobile ? -0.4 : -0.15;
+        targetRotX = 0.78; // Inclinação para baixo/visão do topo
+        targetRotY = -0.25;
+        targetRotZ = 0.1;
+        targetScale = isMobile ? 0.8 : 1.2;
+      } else {
+        // DOBRA 4 & 5: FINISHES / CUSTOMIZER (Produto centralizado e destacado)
+        targetX = isMobile ? 0 : 0.85;
+        targetY = isMobile ? -0.4 : 0.0;
+        targetRotX = 0.15;
+        targetRotY = 0.35;
+        targetRotZ = 0;
+        targetScale = isMobile ? 0.85 : 1.1;
+      }
+    }
+
+    /* ==========================================================================
+       5. SISTEMA DE TROCA DE ACABAMENTO (FINISHES / SWATCHES)
+       ========================================================================== */
+    const swatchBtns = document.querySelectorAll('.swatch-btn');
+    const finishTitle = document.getElementById('finishTitle');
+    const finishDesc = document.getElementById('finishDesc');
+    const dockSwatch = document.getElementById('dockSwatch');
+    const dockFinishLabel = document.getElementById('dockFinishLabel');
+
+    function applyFinish(key) {
+      const f = finishes[key];
+      if (!f) return;
+      currentFinishKey = key;
+      haptics.init();
+      haptics.playSwitch();
+
+      // Atualizar UI
+      swatchBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.finish === key);
+      });
+      finishTitle.textContent = f.name;
+      finishDesc.textContent = f.desc;
+      dockSwatch.style.background = f.swatch;
+      dockFinishLabel.textContent = f.name;
+
+      // Animação de transição de cor no 3D
+      if (productMaterial) {
+        const targetColor = new THREE.Color(f.color);
+        const startColor = productMaterial.color.clone();
+        const startTime = performance.now();
+        const duration = 400; // 400ms suave
+
+        function animateColor(time) {
+          const elapsed = time - startTime;
+          const t = Math.min(1, elapsed / duration);
+          productMaterial.color.lerpColors(startColor, targetColor, t);
+          productMaterial.roughness = f.roughness;
+          productMaterial.metalness = f.metalness;
+          fillLight.color.setHex(f.lightColor);
+          if (t < 1) {
+            requestAnimationFrame(animateColor);
+          }
+        }
+        requestAnimationFrame(animateColor);
+      }
+    }
+
+    swatchBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        applyFinish(btn.dataset.finish);
+      });
+    });
+
+    /* ==========================================================================
+       6. INTERAÇÃO DE ADICIONAR AO CARRINHO (ADD TO BAG)
+       ========================================================================== */
+    const btnAddBag = document.getElementById('btnAddBag');
+    const btnBagText = document.getElementById('btnBagText');
+    const cartToast = document.getElementById('cartToast');
+    const toastText = document.getElementById('toastText');
+
+    btnAddBag.addEventListener('click', () => {
+      haptics.init();
+      haptics.playSuccess();
+
+      const f = finishes[currentFinishKey];
+      btnAddBag.classList.add('added');
+      btnBagText.textContent = 'Added ✓';
+      toastText.textContent = `Added HALO S1 (${f.name}) to bag`;
+      cartToast.classList.add('show');
+
+      setTimeout(() => {
+        btnAddBag.classList.remove('added');
+        btnBagText.textContent = 'Add to bag';
+      }, 2200);
+
+      setTimeout(() => {
+        cartToast.classList.remove('show');
+      }, 3500);
+    });
+
+    /* ==========================================================================
+       7. RENDER LOOP A 60 FPS CONTÍNUOS
+       ========================================================================== */
+    window.addEventListener('scroll', updateScrollytelling, { passive: true });
+    updateScrollytelling();
+
+    function renderLoop() {
+      // Interpolação de arrasto com mouse
+      dragRotX += (targetDragRotX - dragRotX) * 0.1;
+      dragRotY += (targetDragRotY - dragRotY) * 0.1;
+
+      // Interpolação suave de posição e rotação do scrollytelling
+      currentX += (targetX - currentX) * 0.08;
+      currentY += (targetY - currentY) * 0.08;
+      currentRotX += (targetRotX - currentRotX) * 0.08;
+      currentRotY += (targetRotY - currentRotY) * 0.08;
+      currentRotZ += (targetRotZ - currentRotZ) * 0.08;
+      currentScale += (targetScale - currentScale) * 0.08;
+
+      productGroup.position.set(currentX, currentY, 0);
+      productGroup.rotation.set(currentRotX + dragRotX, currentRotY + dragRotY, currentRotZ);
+      productGroup.scale.set(currentScale, currentScale, currentScale);
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(renderLoop);
+    }
+    renderLoop();
+
+    // Redimensionamento de Janela
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      updateScrollytelling();
+    });
+  </script>
+</body>
+</html>
